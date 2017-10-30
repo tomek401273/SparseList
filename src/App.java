@@ -4,6 +4,8 @@ import com.sun.org.apache.xpath.internal.SourceTree;
 
 import java.util.*;
 
+import static javafx.scene.input.KeyCode.T;
+
 class SparseList<T> implements List<T> {
 
 
@@ -42,8 +44,8 @@ class SparseList<T> implements List<T> {
         return false;
     }
 
-    //Czym ma się różnić toArray od toArray(Object []a)
-    public Object[] toArray(int[] array) {
+    @Override
+    public Object[] toArray() {
         Object[] array = new Object[size()];
         for (int i = 0; i < size(); i++) {
             array[i] = defaultPattern;
@@ -56,10 +58,21 @@ class SparseList<T> implements List<T> {
     }
 
     @Override
-    public T[] toArray(T[] a) {
+    public <E> E[] toArray(E[] a) {
+        Object[] array = new Object[size()];
 
+        for (int i = 0; i < a.length; i++) {
+            array[i] = a[i];
+        }
 
-        return new T[0];
+        for (int i = 0; i < size(); i++) {
+            a[i] = (E) defaultPattern;
+        }
+
+        for (Integer integer : sparseMap.keySet()) {
+            a[integer] = (E) sparseMap.get(integer);
+        }
+        return a;
     }
 
     @Override
@@ -454,11 +467,11 @@ class Ideone {
         n.set(2, 3);
         n.set(3, 2);
         n.set(4, 4);
-        n.set(5, 5);
-        n.set(6, 1);
-        n.set(7, 7);
-        n.set(8, 8);
-        n.set(9, 9);
+        n.set(5, 54);
+        n.set(6, 12);
+        n.set(7, 72);
+        n.set(8, 82);
+        n.set(9, 92);
         n.set(10, 10);
 
 
@@ -469,30 +482,31 @@ class Ideone {
                 maxIdx = integer;
             }
         }
-        System.out.println("Size sparseList: " + maxIdx);
-        System.out.println();
+//        System.out.println("Size sparseList: " + maxIdx);
+//        System.out.println();
 
         for (int j = 0; j <= maxIdx; j++) {
             System.out.println("j " + j + " : " + n.get(j));
         }
-        System.out.println("/////////////////////////////////////////");
-        System.out.println("IndexOf: " + n.indexOf(32));
-        System.out.println("IndexLastOf: " + n.lastIndexOf(32));
-        System.out.println("/////////////////////////////////////////");
+//
+//        System.out.println("/////////////////////////////////////////");
+//        System.out.println("IndexOf: " + n.indexOf(32));
+//        System.out.println("IndexLastOf: " + n.lastIndexOf(32));
+//        System.out.println("/////////////////////////////////////////");
 
 
-        System.out.println("Sparse LIST 2");
-        ArrayList<Integer> n2 = new ArrayList<Integer>();
-//        n2 = (ArrayList<Integer>) n.subList(0, 3);
-        n2.add(1);
-        n2.add(2);
-        n2.add(3);
-        n2.add(4);
-
-
-        for (int i = 0; i < n2.size(); i++) {
-            System.out.println("n2: " + n2.get(i));
-        }
+//        System.out.println("Sparse LIST 2");
+//        ArrayList<Integer> n2 = new ArrayList<Integer>();
+////        n2 = (ArrayList<Integer>) n.subList(0, 3);
+//        n2.add(1);
+//        n2.add(2);
+//        n2.add(3);
+//        n2.add(4);
+//
+//
+//        for (int i = 0; i < n2.size(); i++) {
+//            System.out.println("n2: " + n2.get(i));
+//        }
 //        System.out.println("/////////////////////////////////////////");
 //
 //        System.out.println("Remove");
@@ -589,6 +603,17 @@ class Ideone {
 //        }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+        System.out.println("toArray[]");
+        Integer[] a = new Integer[n.size()];
+        Integer[] a2;
+        a2 = n.toArray(a);
+
+       // T[] b = new T[n.size()];
+
+
+        for (int i = 0; i < a2.length; i++) {
+            System.out.println(a2[i]);
+        }
 
     }
 }

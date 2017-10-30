@@ -610,7 +610,6 @@ class Ideone {
 
        // T[] b = new T[n.size()];
 
-
         for (int i = 0; i < a2.length; i++) {
             System.out.println(a2[i]);
         }

@@ -1,10 +1,6 @@
 /* package whatever; // don't place package name! */
 
-import com.sun.org.apache.xpath.internal.SourceTree;
-
 import java.util.*;
-
-import static javafx.scene.input.KeyCode.T;
 
 class SparseList<T> implements List<T> {
 
@@ -59,10 +55,10 @@ class SparseList<T> implements List<T> {
 
     @Override
     public <E> E[] toArray(E[] a) {
-        Object[] array = new Object[size()];
 
-        for (int i = 0; i < a.length; i++) {
-            array[i] = a[i];
+        if (a.length < size()) {
+            throw new IndexOutOfBoundsException();
+
         }
 
         for (int i = 0; i < size(); i++) {
@@ -99,9 +95,8 @@ class SparseList<T> implements List<T> {
     @Override
     public void clear() {
 
-        for (int i = 0; i < size(); i++) {
-            sparseMap.remove(i);
-        }
+        sparseMap.clear();
+        count = 0;
 
     }
 
@@ -153,7 +148,7 @@ class SparseList<T> implements List<T> {
     @Override
     public T get(int index) {
 
-        if (sparseMap.get(index) == null) {
+        if (sparseMap.containsKey(null)) {
             return defaultPattern;
         } else {
             return sparseMap.get(index);
@@ -239,69 +234,6 @@ class SparseList<T> implements List<T> {
         return null;
     }
 
-    @Override
-    public ListIterator<T> listIterator() {
-        return new ListIterator<T>() {
-
-            private int cursor;
-
-            @Override
-            public boolean hasNext() {
-
-                return (cursor < size());
-            }
-
-            @Override
-            public T next() {
-                if (this.hasNext()) {
-                    int current = cursor;
-                    cursor++;
-                    T t = sparseMap.get(current);
-
-                    if (null == t) {
-                        t = defaultPattern;
-                    }
-                    return t;
-                }
-                throw new NoSuchElementException();
-            }
-
-            @Override
-            public boolean hasPrevious() {
-                return false;
-            }
-
-            @Override
-            public T previous() {
-                return null;
-            }
-
-            @Override
-            public int nextIndex() {
-                return 0;
-            }
-
-            @Override
-            public int previousIndex() {
-                return 0;
-            }
-
-            @Override
-            public void remove() {
-
-            }
-
-            @Override
-            public void set(T t) {
-
-            }
-
-            @Override
-            public void add(T t) {
-
-            }
-        };
-    }
 
     @Override
     public ListIterator<T> listIterator(int index) {
@@ -311,7 +243,7 @@ class SparseList<T> implements List<T> {
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
 
-        ArrayList<T> sub = new ArrayList<>();
+        SparseList<T> sub = new SparseList<>(defaultPattern);
 
         for (int i = fromIndex; i < toIndex; i++) {
             sub.add(sparseMap.get(i));
@@ -374,17 +306,23 @@ class SparseList<T> implements List<T> {
 
     @Override
     public boolean containsAll(Collection c) {
-        ArrayList<T> c2 = new ArrayList<>();
+        //ArrayList<T> c2 = new ArrayList<>();
+        Set<T> c2 = new HashSet<>();
         c2.addAll(c);
-        ArrayList<Boolean> equals = new ArrayList<>();
+
+        //ArrayList<Boolean> equals = new ArrayList<>();
+        Set<Boolean> equals = new HashSet<>();
+
         boolean check = false;
 
+        Iterator it = c2.iterator();
 
-        for (int i = 0; i < c2.size(); i++) {
-            T t1 = c2.get(i);
+        while (it.hasNext()) {
+            T t1 = (T) it.next();
 
             for (int j = 0; j < size(); j++) {
                 for (T t2 : sparseMap.values()) {
+
                     if (defaultPattern.equals(t1)) {
                         check = true;
                         break;
@@ -397,25 +335,18 @@ class SparseList<T> implements List<T> {
                         break;
                     }
 
-
                 }
             }
             equals.add(check);
+        }
 
-        }
-        System.out.println("equals size: " + equals.size());
-        for (int i = 0; i < equals.size(); i++) {
-            boolean b = equals.get(i);
-            System.out.println("b: " + b);
-        }
         if (equals.contains(false)) {
             return false;
         }
+
         return true;
     }
 
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -434,10 +365,56 @@ class SparseList<T> implements List<T> {
         result = 31 * result + (defaultPattern != null ? defaultPattern.hashCode() : 0);
         return result;
     }
+
+
+    @Override
+    public ListIterator<T> listIterator() {
+      RangeIterator<T> it = new RangeIterator<T>(sparseMap,size(),defaultPattern);
+        while (it.hasNext()){
+            System.out.println(it.next());
+        }
+
+        return null;
+    }
+
+
+    public static class RangeIterator<T> implements Iterator<T> {
+        private Map<Integer, T> sparseMap;
+        private int curentSize;
+        private int cursor = 0;
+        private T defaultPattern;
+
+        public RangeIterator(Map<Integer, T> sparseMap, int curentSize, T defaultPattern) {
+            this.sparseMap = sparseMap;
+            this.curentSize = curentSize;
+            this.defaultPattern = defaultPattern;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return (cursor < curentSize);
+        }
+
+        @Override
+        public T next() {
+            if (this.hasNext()) {
+                int current = cursor;
+                cursor++;
+                T t = sparseMap.get(current);
+
+                if (null == t) {
+                    t = defaultPattern;
+                }
+                return t;
+            }
+            throw new NoSuchElementException();
+        }
+
+    }
 }
 
-class Ideone {
-    public static void main(String[] args) throws java.lang.Exception {
+    class Ideone {
+        public static void main(String[] args) throws java.lang.Exception {
 
 //        System.out.println("SparseList String");
 //        SparseList<String> name = new SparseList<>("r");
@@ -459,35 +436,35 @@ class Ideone {
 //
 //        System.out.println();
 
-        System.out.println("SparseList Integer");
-        SparseList<Integer> n = new SparseList<>(1);
+            System.out.println("SparseList Integer");
+            SparseList<Integer> n = new SparseList<>(1);
 
-        n.set(0, 0);
-        n.set(1, 1);
-        n.set(2, 3);
-        n.set(3, 2);
-        n.set(4, 4);
-        n.set(5, 54);
-        n.set(6, 12);
-        n.set(7, 72);
-        n.set(8, 82);
-        n.set(9, 92);
-        n.set(10, 10);
+            n.set(0, 0);
+            n.set(1, 1);
+            n.set(2, 2);
+            n.set(3, 3);
+            n.set(4, 4);
+            n.set(5, 54);
+            n.set(6, 12);
+            n.set(7, 72);
+            n.set(8, 82);
+            n.set(9, 92);
+            n.set(10, 10);
 
 
-        int maxIdx = 0;
-        for (Integer integer : n.sparseMap.keySet()) {
+            int maxIdx = 0;
+            for (Integer integer : n.sparseMap.keySet()) {
 
-            if (integer > maxIdx) {
-                maxIdx = integer;
+                if (integer > maxIdx) {
+                    maxIdx = integer;
+                }
             }
-        }
 //        System.out.println("Size sparseList: " + maxIdx);
 //        System.out.println();
 
-        for (int j = 0; j <= maxIdx; j++) {
-            System.out.println("j " + j + " : " + n.get(j));
-        }
+            for (int j = 0; j <= maxIdx; j++) {
+                System.out.println("j " + j + " : " + n.get(j));
+            }
 //
 //        System.out.println("/////////////////////////////////////////");
 //        System.out.println("IndexOf: " + n.indexOf(32));
@@ -495,18 +472,20 @@ class Ideone {
 //        System.out.println("/////////////////////////////////////////");
 
 
-//        System.out.println("Sparse LIST 2");
-//        ArrayList<Integer> n2 = new ArrayList<Integer>();
-////        n2 = (ArrayList<Integer>) n.subList(0, 3);
-//        n2.add(1);
-//        n2.add(2);
-//        n2.add(3);
-//        n2.add(4);
-//
-//
-//        for (int i = 0; i < n2.size(); i++) {
-//            System.out.println("n2: " + n2.get(i));
-//        }
+            System.out.println("Sparse LIST 2");
+            ArrayList<Integer> n2 = new ArrayList<Integer>();
+//        n2 = (ArrayList<Integer>) n.subList(0, 3);
+            n2.add(1);
+            n2.add(3);
+            n2.add(3);
+            n2.add(4);
+            n2.add(92);
+            n2.add(772212);
+
+
+            for (int i = 0; i < n2.size(); i++) {
+                System.out.println("n2: " + n2.get(i));
+            }
 //        System.out.println("/////////////////////////////////////////");
 //
 //        System.out.println("Remove");
@@ -527,10 +506,9 @@ class Ideone {
 //            }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//        System.out.println("Contins all element with n2");
-//
-//        System.out.println(n.containsAll(n2));
-//
+            System.out.println("Contins all element with n2");
+
+            System.out.println(n.containsAll(n2));
 
 
 //////////////////////////////////////////////////Iterator//////////////////////////////////////////////////////////////
@@ -603,16 +581,20 @@ class Ideone {
 //        }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        System.out.println("toArray[]");
-        Integer[] a = new Integer[n.size()];
-        Integer[] a2;
-        a2 = n.toArray(a);
+//        System.out.println("toArray[]");
+//        Integer[] a = new Integer[n.size()];
+//        Integer[] a2;
+//        a2 = n.toArray(a);
+//
+//        // T[] b = new T[n.size()];
+//
+//        for (int i = 0; i < a2.length; i++) {
+//            System.out.println(a2[i]);
+//        }
 
-       // T[] b = new T[n.size()];
+          n.listIterator();
 
-        for (int i = 0; i < a2.length; i++) {
-            System.out.println(a2[i]);
+
+
         }
-
     }
-}
